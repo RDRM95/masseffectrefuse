@@ -1,0 +1,14 @@
+node_modules/
+out/
+dist-site/
+renders/
+frames/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+# large generated media is distributed via GitHub Releases, not git
+*.mp4
+*.mov
+*.webm
+public/audio/**/*.wav
