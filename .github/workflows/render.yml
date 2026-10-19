@@ -1,0 +1,45 @@
+name: Render film (manual)
+
+# Renders a chapter, the trailer or the complete film on a GitHub runner and
+# attaches the MP4 to a release. The full film takes well over an hour on a
+# standard runner; chapters are the practical unit.
+
+on:
+  workflow_dispatch:
+    inputs:
+      composition:
+        description: Composition id (Opening, PreparedGalaxy, Catalyst, LongWar, ReapersRespond, FinalHarvest, Victory, Future, Trailer, FullFilm)
+        required: true
+        default: Trailer
+      release_tag:
+        description: Release tag to attach the MP4 to (created if missing)
+        required: true
+        default: v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Render
+        run: npx remotion render src/index.ts "${{ inputs.composition }}" "renders/${{ inputs.composition }}.mp4"
+        env:
+          REMOTION_CONCURRENCY: 2
+      - name: Verify
+        run: ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of default=nw=1 "renders/${{ inputs.composition }}.mp4"
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ inputs.release_tag }}" >/dev/null 2>&1 || gh release create "${{ inputs.release_tag }}" --title "MASS EFFECT: REFUSE ${{ inputs.release_tag }}" --notes "Rendered media for the film. See README for details."
+          gh release upload "${{ inputs.release_tag }}" "renders/${{ inputs.composition }}.mp4" --clobber

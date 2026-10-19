@@ -50,7 +50,7 @@ export const CUES_CH2: Cue[] = [
   {start: 78.5, end: 80, speaker: 'SHEPARD', text: 'That ends now.'},
   {start: 81, end: 82.5, speaker: 'CATALYST', text: 'You choose refusal.'},
   {start: 83, end: 84.6, speaker: 'SHEPARD', text: 'I choose us.'},
-  {start: 90.5, end: 93, speaker: 'HACKETT', text: 'Normandy, this is Hackett. The Crucible is dark. Get our people out of there.', radio: true},
+  {start: 90.3, end: 93.1, speaker: 'HACKETT', text: 'Normandy, this is Hackett. The Crucible is dark. Get our people out of there.', radio: true},
   {start: 93.3, end: 95.5, speaker: 'JOKER', text: "Already on approach. EDI's got two life signs at the beam site.", radio: true},
   {start: 95.8, end: 97.8, speaker: 'EDI', text: 'Commander Shepard and Admiral Anderson. Both alive.', radio: true},
   {start: 100, end: 101.2, speaker: 'HACKETT', text: 'The Crucible?'},

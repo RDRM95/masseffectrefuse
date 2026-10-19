@@ -384,8 +384,8 @@ const Battle: React.FC = () => {
       </div>
 
       <Flash opacity={fadeInOut(frame, s(FIRE), s(FIRE + 0.08), s(FIRE + 0.25), s(FIRE + 0.8)) * 0.7} color="#dff3ff" />
-      <Flash opacity={fadeInOut(frame, s(KILL), s(KILL + 0.1), s(KILL + 0.35), s(KILL + 1.4)) * 0.95} color="#fff6e6" />
-      <Flash opacity={fadeInOut(frame, s(KILL + 7.2), s(KILL + 7.3), s(KILL + 7.6), s(KILL + 8.6)) * 0.6} color="#ffe3c4" />
+      <Flash opacity={fadeInOut(frame, s(KILL), s(KILL + 0.08), s(KILL + 0.25), s(KILL + 0.8)) * 0.7} color="#fff6e6" />
+      <Flash opacity={fadeInOut(frame, s(KILL + 7.2), s(KILL + 7.3), s(KILL + 7.5), s(KILL + 8.0)) * 0.35} color="#ffe3c4" />
 
       {/* Firing plan interface */}
       <HudFrame from={s(34)} to={s(KILL - 0.2)} label="FIRING PLAN — HARBINGER — SECTION SEVEN" color="#ff8a1f">

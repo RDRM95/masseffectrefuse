@@ -12,3 +12,4 @@ playwright-report/
 *.mov
 *.webm
 public/audio/**/*.wav
+site/generated/

@@ -289,7 +289,7 @@ const FinalShot: React.FC = () => {
   const frame = useCurrentFrame();
   const t = frame / FPS;
   const cam = {x: kf(frame, [0, s(6), s(12)], [900, 960, 960]), y: kf(frame, [0, s(6), s(12)], [600, 560, 540]), zoom: kf(frame, [0, s(6), s(12)], [1.2, 1.0, 0.8])};
-  const shepardFade = kf(frame, [s(7), s(10)], [1, 0]);
+  const shepardFade = kf(frame, [s(4.5), s(7)], [1, 0]);
   return (
     <AbsoluteFill style={{background: '#02040a'}}>
       <Camera cam={cam}>

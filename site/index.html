@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>MASS EFFECT: REFUSE — The Ending We Earned</title>
+    <meta name="description" content="An unofficial fan-made animated alternate ending to Mass Effect 3. Shepard refuses the Catalyst; the galaxy wins the war on its own terms." />
+    <meta name="theme-color" content="#02040a" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2302040a'/%3E%3Cpath d='M4 24 L16 6 L28 24 Z' fill='none' stroke='%236fc3ff' stroke-width='2'/%3E%3Ccircle cx='16' cy='18' r='3' fill='%23ff8a1f'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="config.js"></script>
+  </head>
+  <body>
+    <div class="scan" aria-hidden="true"></div>
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="eyebrow">CINEMATIC ARCHIVE · UNOFFICIAL FAN PRODUCTION</div>
+        <h1><span class="title-top">MASS EFFECT</span><span class="title-main">REFUSE</span></h1>
+        <div class="tagline">THE ENDING WE EARNED</div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="player" id="player" aria-label="Film player">
+        <div class="screen">
+          <video id="video" playsinline preload="metadata" crossorigin="anonymous">
+            <track id="subs" kind="subtitles" label="English" srclang="en" src="generated/film.vtt" default />
+          </video>
+          <button class="bigplay" id="bigplay" aria-label="Play film">
+            <span class="ring"></span>
+            <span class="tri"></span>
+            <span class="label">PLAY FILM</span>
+          </button>
+          <div class="overlay-top">
+            <div class="now" id="nowPlaying">PROLOGUE — THE CYCLE</div>
+            <div class="mode" id="modeTag">FILM</div>
+          </div>
+          <div class="status" id="status" hidden></div>
+        </div>
+
+        <div class="controls" id="controls">
+          <div class="progress" id="progress" role="slider" aria-label="Playback progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+            <div class="buffer" id="buffer"></div>
+            <div class="played" id="played"></div>
+            <div class="markers" id="markers"></div>
+            <div class="knob" id="knob"></div>
+          </div>
+          <div class="buttons">
+            <button id="play" class="btn" aria-label="Play or pause" title="Play / Pause (Space)">
+              <svg viewBox="0 0 24 24" class="ico-play"><path d="M6 4l14 8-14 8z" /></svg>
+              <svg viewBox="0 0 24 24" class="ico-pause"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg>
+            </button>
+            <button id="restart" class="btn" aria-label="Restart" title="Restart (R)">
+              <svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" /></svg>
+            </button>
+            <div class="time"><span id="current">0:00</span><span class="sep">/</span><span id="duration">0:00</span></div>
+            <div class="spacer"></div>
+            <button id="mute" class="btn" aria-label="Mute or unmute" title="Mute (M)">
+              <svg viewBox="0 0 24 24" class="ico-vol"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z" /></svg>
+              <svg viewBox="0 0 24 24" class="ico-muted"><path d="M4 9v6h4l5 4V5L8 9H4zm15.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z" /></svg>
+            </button>
+            <input id="volume" class="volume" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume" />
+            <button id="cc" class="btn toggle on" aria-label="Subtitles" aria-pressed="true" title="Subtitles (C)">CC</button>
+            <button id="trailer" class="btn toggle" aria-label="Switch between film and trailer" aria-pressed="false" title="Trailer (T)">TRAILER</button>
+            <button id="fullscreen" class="btn" aria-label="Fullscreen" title="Fullscreen (F)">
+              <svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z" /></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="chapters" aria-label="Chapters">
+        <div class="panel-head">
+          <span>CHAPTERS</span>
+          <span class="runtime" id="runtime"></span>
+        </div>
+        <ol id="chapterList" class="chapter-list"></ol>
+        <div class="panel-foot">
+          <p>Keyboard: <kbd>Space</kbd> play · <kbd>←</kbd>/<kbd>→</kbd> seek · <kbd>F</kbd> fullscreen · <kbd>C</kbd> subtitles · <kbd>M</kbd> mute · <kbd>1–8</kbd> chapters</p>
+        </div>
+      </aside>
+    </main>
+
+    <section class="about">
+      <div class="about-inner">
+        <h2>ABOUT THIS PRODUCTION</h2>
+        <p>
+          <em>Mass Effect: Refuse</em> is an unofficial, non-commercial fan film: an animated alternate ending to Mass Effect 3 in which Shepard
+          rejects the Catalyst's three choices and the galaxy — prepared since Sovereign's attack in 2183 — defeats the Reapers through conventional war.
+          Every ship, environment, character silhouette, line of dialogue and bar of music here is original work created for this project.
+          No game assets were extracted or redistributed.
+        </p>
+        <p class="small">Mass Effect is a trademark of Electronic Arts Inc. / BioWare. This project is not affiliated with or endorsed by either.</p>
+        <div class="links" id="links"></div>
+      </div>
+    </section>
+
+    <script src="player.js"></script>
+  </body>
+</html>

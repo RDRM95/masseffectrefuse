@@ -1,0 +1,66 @@
+name: CI and Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests (timeline, assets, subtitles)
+        run: npm test
+      - name: Build site
+        run: bash scripts/build-site.sh
+        env:
+          REPO_SLUG: ${{ github.repository }}
+          RELEASE_TAG: ${{ vars.FILM_RELEASE_TAG || 'v0.1.0' }}
+      - name: Test clip for the player
+        run: |
+          mkdir -p dist-site/media
+          ffmpeg -y -loglevel error -f lavfi -i testsrc=size=640x360:rate=30 -f lavfi -i sine=frequency=440 -t 6 -c:v libvpx -b:v 400k -c:a libopus dist-site/media/test.webm
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests (player)
+        run: npx playwright test
+      - name: Render a still frame from the opening (smoke test of the Remotion pipeline)
+        run: npx remotion still src/index.ts Opening out/opening-still.jpg --frame=1560 --props='{"noAudio":true}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opening-still
+          path: out/opening-still.jpg
+      - name: Remove test clip from the deployable site
+        run: rm -rf dist-site/media
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
