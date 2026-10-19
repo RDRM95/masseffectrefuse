@@ -21,7 +21,7 @@ rm -rf "$OUT"
 mkdir -p "$OUT/fonts" "$OUT/generated"
 
 npx tsx scripts/export-site-data.ts
-cp site/index.html site/styles.css site/player.js "$OUT/"
+cp site/index.html site/styles.css site/player.js site/poster.jpg "$OUT/"
 cp site/generated/* "$OUT/generated/"
 cp public/fonts/Michroma-Regular.ttf public/fonts/Jura-Variable.ttf public/fonts/Exo2-Variable.ttf public/fonts/OFL-*.txt "$OUT/fonts/"
 touch "$OUT/.nojekyll"
