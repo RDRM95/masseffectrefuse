@@ -66,9 +66,18 @@ See `PRODUCTION_ROADMAP.md` (status and next tasks), `SCRIPT.md` (full screenpla
 
 ## Deployment
 
-`.github/workflows/ci.yml` typechecks, runs the unit and end-to-end tests, renders a smoke-test frame, builds the site and deploys it to GitHub Pages on pushes to `main`. Pages must be set to **Source: GitHub Actions** in the repository settings the first time.
+Two workflows live in `.github/workflows/`:
 
-The player streams `MassEffectRefuse-Full.mp4` and `Trailer.mp4` from the GitHub Release named by `RELEASE_TAG` (default `v0.1.0`; override in CI with the `FILM_RELEASE_TAG` repository variable). Upload renders with `gh release upload v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`, or run the manual **Render film** workflow (`.github/workflows/render.yml`), which renders a composition on a runner and attaches it to the release.
+- **CI and Pages** (`ci.yml`): on every push to `main` it typechecks, runs the unit and end-to-end tests, renders a smoke-test frame, builds the site and deploys it to GitHub Pages. The player streams the film from the GitHub Release named by `RELEASE_TAG` (default `v0.1.0`; override with the `FILM_RELEASE_TAG` repository variable).
+- **Render and publish media** (`render.yml`, manual): renders `FullFilm` and `Trailer` in parallel on GitHub runners (2–3 hours), attaches both MP4s to the release, then redeploys the site. This is the one-click way to put the film online.
+
+First-time setup, in order:
+
+1. Merge this branch into `main` (the workflows must exist on the default branch to appear in the Actions tab).
+2. Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. **Actions → Render and publish media → Run workflow** (defaults are fine). When it finishes the player at `https://rdrm95.github.io/masseffectrefuse/` plays the film.
+
+Alternatively, render locally (`npm run render:film && npm run render:trailer`) and upload with `gh release create v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`; the CI deploy will then pick the files up.
 
 ## Licence
 

@@ -4,7 +4,7 @@ Keep this honest. Remove items when fixed; add the commit that fixed them if use
 
 ## Distribution
 
-- **Release assets.** The web player expects `MassEffectRefuse-Full.mp4` and `Trailer.mp4` on GitHub Release `v0.1.0`. If the release or its assets are missing, the player shows "COULD NOT LOAD VIDEO" with the configured URL. Upload with `gh release upload v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4` or use the manual render workflow.
+- **Release assets.** The web player expects `MassEffectRefuse-Full.mp4` and `Trailer.mp4` on GitHub Release `v0.1.0`. The cloud session that produced this cut is not permitted to create releases or enable Pages, so the release does not exist yet; until it does the player shows "COULD NOT LOAD VIDEO" with the configured URL. Run the **Render and publish media** workflow (see README → Deployment) or upload local renders with `gh release create v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`.
 - **GitHub Pages** must be enabled with Source = GitHub Actions before the deploy job can succeed. Until it is, the `deploy` job fails and the site is not live.
 
 ## Visual

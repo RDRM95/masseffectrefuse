@@ -1,28 +1,37 @@
-name: Render film (manual)
+name: Render and publish media
 
-# Renders a chapter, the trailer or the complete film on a GitHub runner and
-# attaches the MP4 to a release. The full film takes well over an hour on a
-# standard runner; chapters are the practical unit.
+# Renders the complete film and the trailer on GitHub runners, attaches both
+# MP4s to a release, then rebuilds and deploys the Pages site so the player
+# streams them. Run it from the Actions tab (workflow_dispatch). The full film
+# takes roughly 2–3 hours on a standard runner; the two renders run in parallel.
+#
+# Requirements: GitHub Pages enabled with Source = GitHub Actions.
 
 on:
   workflow_dispatch:
     inputs:
-      composition:
-        description: Composition id (Opening, PreparedGalaxy, Catalyst, LongWar, ReapersRespond, FinalHarvest, Victory, Future, Trailer, FullFilm)
-        required: true
-        default: Trailer
       release_tag:
-        description: Release tag to attach the MP4 to (created if missing)
+        description: Release tag to attach the MP4s to (created if missing)
         required: true
         default: v0.1.0
+      compositions:
+        description: JSON list of compositions to render
+        required: true
+        default: '["FullFilm","Trailer"]'
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        composition: ${{ fromJSON(inputs.compositions) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,15 +40,42 @@ jobs:
           cache: npm
       - run: npm ci
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - name: Render
-        run: npx remotion render src/index.ts "${{ inputs.composition }}" "renders/${{ inputs.composition }}.mp4"
+      - name: Render ${{ matrix.composition }}
+        run: |
+          OUT="renders/${{ matrix.composition }}.mp4"
+          if [ "${{ matrix.composition }}" = "FullFilm" ]; then OUT="renders/MassEffectRefuse-Full.mp4"; fi
+          npx remotion render src/index.ts "${{ matrix.composition }}" "$OUT"
+          ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of default=nw=1 "$OUT"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
         env:
           REMOTION_CONCURRENCY: 2
-      - name: Verify
-        run: ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of default=nw=1 "renders/${{ inputs.composition }}.mp4"
-      - name: Attach to release
+      - name: Attach to release ${{ inputs.release_tag }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "${{ inputs.release_tag }}" >/dev/null 2>&1 || gh release create "${{ inputs.release_tag }}" --title "MASS EFFECT: REFUSE ${{ inputs.release_tag }}" --notes "Rendered media for the film. See README for details."
-          gh release upload "${{ inputs.release_tag }}" "renders/${{ inputs.composition }}.mp4" --clobber
+          gh release view "${{ inputs.release_tag }}" >/dev/null 2>&1 || gh release create "${{ inputs.release_tag }}" --title "MASS EFFECT: REFUSE ${{ inputs.release_tag }}" --notes "Rendered media for the fan film: the complete film and the trailer (1920x1080, 30 fps, AAC audio). The web player streams these files."
+          gh release upload "${{ inputs.release_tag }}" "$OUT" --clobber
+
+  deploy:
+    needs: render
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build site pointing at the release
+        run: bash scripts/build-site.sh
+        env:
+          REPO_SLUG: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-site
+      - id: deployment
+        uses: actions/deploy-pages@v4
