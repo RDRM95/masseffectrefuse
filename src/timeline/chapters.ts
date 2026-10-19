@@ -35,12 +35,12 @@ export interface ChapterDef {
 export const CHAPTERS: ChapterDef[] = [
   {id: 'opening', compositionId: 'Opening', title: 'The Cycle', number: 0, durationSeconds: 78, music: 'opening.mp3'},
   {id: 'prepared-galaxy', compositionId: 'PreparedGalaxy', title: 'The Prepared Galaxy', number: 1, durationSeconds: 84, music: 'prepared-galaxy.mp3'},
-  {id: 'catalyst', compositionId: 'Catalyst', title: 'The Catalyst', number: 2, durationSeconds: 96, music: 'catalyst.mp3'},
+  {id: 'catalyst', compositionId: 'Catalyst', title: 'The Catalyst', number: 2, durationSeconds: 112, music: 'catalyst.mp3'},
   {id: 'long-war', compositionId: 'LongWar', title: 'The Long War', number: 3, durationSeconds: 66, music: 'long-war.mp3'},
   {id: 'reapers-respond', compositionId: 'ReapersRespond', title: 'The Reapers Respond', number: 4, durationSeconds: 36, music: 'reapers-respond.mp3'},
   {id: 'final-harvest', compositionId: 'FinalHarvest', title: 'The Final Harvest', number: 5, durationSeconds: 84, music: 'final-harvest.mp3'},
   {id: 'victory', compositionId: 'Victory', title: 'Victory', number: 6, durationSeconds: 42, music: 'victory.mp3'},
-  {id: 'future', compositionId: 'Future', title: 'The Future', number: 7, durationSeconds: 66, music: 'future.mp3'},
+  {id: 'future', compositionId: 'Future', title: 'The Future', number: 7, durationSeconds: 84, music: 'future.mp3'},
 ];
 
 export const secondsToFrames = (s: number): number => Math.round(s * FPS);

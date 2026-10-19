@@ -34,8 +34,8 @@ export const Slug: React.FC<{x0: number; y0: number; x1: number; y1: number; t: 
 /** Kinetic barrier impact: a hexagonal blue flare that blooms and fades. */
 export const ShieldImpact: React.FC<{x: number; y: number; t: number; size?: number; color?: string}> = ({x, y, t, size = 1, color = '#6fc3ff'}) => {
   if (t <= 0 || t >= 1) return null;
-  const r = (40 + 90 * t) * size;
-  const o = (1 - t) * 0.9;
+  const r = (26 + 60 * t) * size;
+  const o = (1 - t) * 0.75;
   return (
     <svg width={r * 2.6} height={r * 2.6} viewBox={`${-r * 1.3} ${-r * 1.3} ${r * 2.6} ${r * 2.6}`} style={{position: 'absolute', left: x - r * 1.3, top: y - r * 1.3, overflow: 'visible'}}>
       <defs>
@@ -67,8 +67,9 @@ export const Explosion: React.FC<{x: number; y: number; t: number; size?: number
   const id = useId().replace(/:/g, '');
   const flash = Math.max(0, 1 - t * 6);
   const fire = Math.sin(Math.min(1, t * 1.15) * Math.PI);
-  const r = (30 + 160 * Math.pow(t, 0.45)) * size;
+  const r = (24 + 110 * Math.pow(t, 0.5)) * size;
   const ring = clamp01((t - 0.05) / 0.9);
+  const hot = Math.max(0, 1 - t * 2.2);
   const core = hue === 'blue' ? '#dff3ff' : hue === 'red' ? '#ffd0c0' : '#fff3d6';
   const mid = hue === 'blue' ? '#6fc3ff' : hue === 'red' ? '#ff4a2a' : '#ff9a2a';
   const outer = hue === 'blue' ? '#1e5fa8' : hue === 'red' ? '#7a0f0a' : '#6b2200';
@@ -91,6 +92,16 @@ export const Explosion: React.FC<{x: number; y: number; t: number; size?: number
       </defs>
       {flash > 0 ? <circle r={r * 2.8} fill={`url(#${id}-fl)`} /> : null}
       <circle r={r} fill={`url(#${id}-fb)`} filter={`url(#${id}-blur)`} />
+      {/* white-hot core */}
+      <circle r={r * 0.32 * (0.4 + hot)} fill="#ffffff" opacity={hot * 0.95} filter={`url(#${id}-blur)`} />
+      {/* dark smoke lobes late in the life */}
+      {t > 0.35
+        ? [...Array(5)].map((_, i) => {
+            const a = random(`${seed}-sa${i}`) * Math.PI * 2;
+            const d = r * (0.2 + random(`${seed}-sd${i}`) * 0.6);
+            return <circle key={`s${i}`} cx={Math.cos(a) * d} cy={Math.sin(a) * d} r={r * (0.3 + random(`${seed}-sr${i}`) * 0.35)} fill="#1a0f08" opacity={(t - 0.35) * 0.9 * (1 - t)} filter={`url(#${id}-blur)`} />;
+          })
+        : null}
       {/* smoky lumps */}
       {[...Array(7)].map((_, i) => {
         const a = random(`${seed}-a${i}`) * Math.PI * 2;
@@ -98,7 +109,7 @@ export const Explosion: React.FC<{x: number; y: number; t: number; size?: number
         return <circle key={i} cx={Math.cos(a) * d} cy={Math.sin(a) * d} r={r * (0.25 + random(`${seed}-r${i}`) * 0.3)} fill={mid} opacity={fire * 0.45} filter={`url(#${id}-blur)`} />;
       })}
       {/* shockwave */}
-      <circle r={r * 1.2 + ring * r * 2.2} fill="none" stroke={core} strokeWidth={Math.max(0.5, 4 * (1 - ring)) * size} opacity={(1 - ring) * 0.7} />
+      <circle r={r * 0.9 + ring * r * 0.9} fill="none" stroke={core} strokeWidth={Math.max(0.5, 3 * (1 - ring)) * size} opacity={(1 - ring) * 0.45} />
       {/* debris sparks */}
       {[...Array(debris)].map((_, i) => {
         const a = random(`${seed}-s${i}`) * Math.PI * 2;

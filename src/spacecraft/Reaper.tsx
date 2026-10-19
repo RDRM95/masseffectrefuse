@@ -22,6 +22,8 @@ interface ReaperProps {
   opacity?: number;
   /** Eye glow brightness 0..1 */
   glow?: number;
+  /** 0..1 structural break-up: limbs tear away from the body, hull splits. */
+  fracture?: number;
 }
 
 const BODY_DARK = '#07080c';
@@ -29,7 +31,7 @@ const BODY_MID = '#15171f';
 const BODY_LIGHT = '#2b2f3b';
 const BODY_EDGE = '#3d4250';
 
-export const Reaper: React.FC<ReaperProps> = ({scale = 1, variant = 'sovereign', firing = 0, damage = 0, limbPhase = 0, opacity = 1, glow = 1}) => {
+export const Reaper: React.FC<ReaperProps> = ({scale = 1, variant = 'sovereign', firing = 0, damage = 0, limbPhase = 0, opacity = 1, glow = 1, fracture = 0}) => {
   const id = useId().replace(/:/g, '');
   const isH = variant === 'harbinger';
   const isD = variant === 'destroyer';
@@ -114,8 +116,12 @@ export const Reaper: React.FC<ReaperProps> = ({scale = 1, variant = 'sovereign',
       {limbs.map(([p0, c, p1, w0, w1], i) => {
         const cc: Pt = [c[0] + sway(i), c[1]];
         const joints = alongCurve(p0, cc, p1, 5);
+        const dir = Math.sign(p1[0] - p0[0]) || (i % 2 ? 1 : -1);
+        const fx = fracture * (40 + i * 18) * dir;
+        const fy = fracture * (60 + i * 25);
+        const fr = fracture * (12 + i * 6) * dir;
         return (
-          <g key={i}>
+          <g key={i} transform={fracture > 0 ? `translate(${fx} ${fy}) rotate(${fr} ${p0[0]} ${p0[1]})` : undefined} opacity={1 - fracture * 0.3}>
             <path d={taperedCurve(p0, cc, p1, w0, w1)} fill={`url(#${id}-limb)`} stroke={BODY_EDGE} strokeWidth="1.4" strokeLinejoin="round" />
             {joints.map(([jx, jy], k) => (
               <g key={k}>
@@ -129,7 +135,15 @@ export const Reaper: React.FC<ReaperProps> = ({scale = 1, variant = 'sovereign',
       })}
 
       {/* body */}
+      <g transform={fracture > 0 ? `translate(${fracture * 30} ${-fracture * 40}) rotate(${fracture * 8})` : undefined}>
       <path d={path(body)} fill={`url(#${id}-body)`} stroke={BODY_EDGE} strokeWidth="1.8" strokeLinejoin="round" />
+      {fracture > 0 ? (
+        <g>
+          <path d={`M${-60 * bw} -200 L${-20 * bw} -120 L${10 * bw} -160 L${40 * bw} -60 L${90 * bw} -20`} fill="none" stroke="#ffd27a" strokeWidth={3 + fracture * 4} opacity={Math.min(1, fracture * 2)} />
+          <path d={`M${-100 * bw} 0 L${-40 * bw} 40 L${0} 10 L${50 * bw} 70`} fill="none" stroke="#ff8a1f" strokeWidth={2 + fracture * 3} opacity={Math.min(1, fracture * 2)} />
+        </g>
+      ) : null}
+      </g>
       {/* layered armour plates */}
       {(isD ? [-380, -300, -220, -140, -60, 20] : [-440, -380, -310, -240, -170, -100, -30, 40, 110]).map((y, i) => {
         const t = (y + (isD ? 420 : 500)) / (isD ? 520 : 672);
@@ -142,6 +156,15 @@ export const Reaper: React.FC<ReaperProps> = ({scale = 1, variant = 'sovereign',
           </g>
         );
       })}
+      {/* lateral armour ridges */}
+      {(isD ? [-300, -200, -100] : [-360, -260, -160, -60, 40]).map((y, i) => (
+        <g key={`lr${i}`}>
+          <path d={`M${-(isD ? 70 : 100 * bw)} ${y} L${-(isD ? 40 : 60 * bw)} ${y - 26} L${-(isD ? 20 : 30 * bw)} ${y + 6}`} fill="none" stroke="#06070a" strokeWidth="2.2" />
+          <path d={`M${isD ? 70 : 100 * bw} ${y} L${isD ? 40 : 60 * bw} ${y - 26} L${isD ? 20 : 30 * bw} ${y + 6}`} fill="none" stroke="#06070a" strokeWidth="2.2" />
+          <path d={`M${-(isD ? 70 : 100 * bw)} ${y} L${-(isD ? 40 : 60 * bw)} ${y - 26}`} fill="none" stroke={BODY_EDGE} strokeWidth="0.8" opacity="0.8" />
+          <path d={`M${isD ? 70 : 100 * bw} ${y} L${isD ? 40 : 60 * bw} ${y - 26}`} fill="none" stroke={BODY_EDGE} strokeWidth="0.8" opacity="0.8" />
+        </g>
+      ))}
       {/* central spine seam */}
       <path d={`M0 ${isD ? -400 : -480} L0 ${isD ? 80 : 150}`} stroke="#06070a" strokeWidth="4" />
       <path d={`M0 ${isD ? -400 : -480} L0 ${isD ? 80 : 150}`} stroke={accent} strokeWidth="1.2" opacity={0.5 * live} />
@@ -178,6 +201,17 @@ export const Reaper: React.FC<ReaperProps> = ({scale = 1, variant = 'sovereign',
       ) : null}
     </svg>
   );
+};
+
+/**
+ * World-space position of a Reaper's main weapon aperture, given the
+ * component's placement (x, y, rotation in degrees, scale). Use this as the
+ * origin of a ReaperBeam so the lance leaves the hull at the right point.
+ */
+export const reaperAperture = (x: number, y: number, rotateDeg: number, scale: number, variant: 'sovereign' | 'harbinger' | 'destroyer' = 'sovereign'): {x: number; y: number} => {
+  const local = variant === 'destroyer' ? 60 : 110;
+  const th = (rotateDeg * Math.PI) / 180;
+  return {x: x - Math.sin(th) * local * scale, y: y + Math.cos(th) * local * scale};
 };
 
 /** Reaper beam: a devastating red directed-energy lance from (x0,y0) to (x1,y1), in world px. */
