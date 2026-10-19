@@ -12,8 +12,8 @@ Living status document for future sessions. Update it whenever a chapter, asset 
 | 4 | Chapter 3 "The Long War" montage, galaxy map | Done |
 | 5 | Chapter 5 "The Final Harvest" (Harbinger) | Done |
 | 6 | Chapters 4, 6, 7 (Reapers respond, Victory, Future) | Done |
-| 7 | Full assembly, music/SFX sync, subtitles, grade, full render | Done (`scripts/render-all-chapters.sh`) |
-| — | Trailer composition | Done |
+| 7 | Full assembly, music/SFX sync, subtitles, grade, full render | Done — rendered and verified: 586 s, 1920×1080, 30 fps, AAC (252 MB) |
+| — | Trailer composition | Done — rendered (66 s, 36 MB) |
 | — | Web player, GitHub Pages workflow, tests | Done; Pages must be enabled in repo settings |
 | — | MP4 distribution via GitHub Release | See KNOWN_ISSUES for the current state |
 

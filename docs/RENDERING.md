@@ -30,7 +30,7 @@ Settings live in `remotion.config.ts`: H.264, CRF 18, yuv420p, JPEG frames at qu
 |-------------|--------|-----------|
 | Opening | 2340 | ~7 min |
 | PreparedGalaxy | 2520 | ~10 min |
-| Full film | 17580 | ~65–75 min via `render-all-chapters.sh` |
+| Full film | 17580 | ~70 min via `render-all-chapters.sh` (252 MB at CRF 18) |
 
 ## Verifying a render
 
