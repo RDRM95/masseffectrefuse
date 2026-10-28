@@ -1,0 +1,131 @@
+name: CI, Pages and media
+
+# On every push / PR: typecheck, unit tests, site build, end-to-end tests, a
+# smoke-test render of one frame.
+# On main additionally:
+#   - switch Pages to the GitHub Actions source if needed and deploy the player;
+#   - if release RELEASE_TAG is missing the film or trailer, render them on
+#     runners (2–3 h, in parallel) and attach them to the release. The deployed
+#     player streams from that release, so no redeploy is needed afterwards.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  RELEASE_TAG: ${{ vars.FILM_RELEASE_TAG || 'v0.1.0' }}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests (timeline, assets, subtitles)
+        run: npm test
+      - name: Build site
+        run: bash scripts/build-site.sh
+        env:
+          REPO_SLUG: ${{ github.repository }}
+      - name: Test clip for the player
+        run: |
+          mkdir -p dist-site/media
+          ffmpeg -y -loglevel error -f lavfi -i testsrc=size=640x360:rate=30 -f lavfi -i sine=frequency=440 -t 6 -c:v libvpx -b:v 400k -c:a libopus dist-site/media/test.webm
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests (player)
+        run: npx playwright test
+      - name: Render a still frame from the opening (smoke test of the Remotion pipeline)
+        run: npx remotion still src/index.ts Opening out/opening-still.jpg --frame=1560 --props='{"noAudio":true}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opening-still
+          path: out/opening-still.jpg
+      - name: Remove test clip from the deployable site
+        run: rm -rf dist-site/media
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Enable Pages with the GitHub Actions source (no-op if already set)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  media-check:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    outputs:
+      missing: ${{ steps.check.outputs.missing }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          assets=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null || true)
+          if echo "$assets" | grep -q '^MassEffectRefuse-Full.mp4$' && echo "$assets" | grep -q '^Trailer.mp4$'; then
+            echo "missing=false" >> "$GITHUB_OUTPUT"; echo "Release $RELEASE_TAG already has the film and trailer."
+          else
+            echo "missing=true" >> "$GITHUB_OUTPUT"; echo "Release $RELEASE_TAG is missing media; rendering."
+          fi
+
+  render:
+    needs: media-check
+    if: needs.media-check.outputs.missing == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        composition: [FullFilm, Trailer]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Render ${{ matrix.composition }}
+        run: |
+          OUT="renders/${{ matrix.composition }}.mp4"
+          if [ "${{ matrix.composition }}" = "FullFilm" ]; then OUT="renders/MassEffectRefuse-Full.mp4"; fi
+          npx remotion render src/index.ts "${{ matrix.composition }}" "$OUT"
+          ffprobe -v error -show_entries format=duration:stream=codec_type,width,height -of default=nw=1 "$OUT"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+        env:
+          REMOTION_CONCURRENCY: 2
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --title "MASS EFFECT: REFUSE $RELEASE_TAG" --notes "Rendered media for the fan film: the complete film and the trailer (1920x1080, 30 fps, AAC audio). The web player streams these files."
+          gh release upload "$RELEASE_TAG" "$OUT" --repo "$GITHUB_REPOSITORY" --clobber
