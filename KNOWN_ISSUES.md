@@ -4,8 +4,8 @@ Keep this honest. Remove items when fixed; add the commit that fixed them if use
 
 ## Distribution
 
-- **Release assets.** The web player expects `MassEffectRefuse-Full.mp4` and `Trailer.mp4` on GitHub Release `v0.1.0`. The cloud session that produced this cut is not permitted to create releases or enable Pages, so the release does not exist yet; until it does the player shows "COULD NOT LOAD VIDEO" with the configured URL. Run the **Render and publish media** workflow (see README → Deployment) or upload local renders with `gh release create v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`.
-- **GitHub Pages** must be enabled with Source = GitHub Actions before the deploy job can succeed. Until it is, the `deploy` job fails and the site is not live.
+- **Release assets.** The web player expects `MassEffectRefuse-Full.mp4` and `Trailer.mp4` on GitHub Release `v0.1.0`. The cloud session that produced this cut is not permitted to create releases or enable Pages, so the release does not exist yet; until it does the player shows "COULD NOT LOAD VIDEO" with the configured URL. Merging to `main` triggers CI, which renders both files on GitHub runners and creates the release automatically (see README → Deployment); local renders can also be uploaded with `gh release create v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`.
+- **GitHub Pages** is switched to the GitHub Actions source by the CI deploy job (`actions/configure-pages` with enablement). If the repository's token is not allowed to change that setting, set it by hand: Settings → Pages → Source: GitHub Actions.
 
 ## Visual
 

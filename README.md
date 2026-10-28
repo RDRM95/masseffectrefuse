@@ -66,18 +66,14 @@ See `PRODUCTION_ROADMAP.md` (status and next tasks), `SCRIPT.md` (full screenpla
 
 ## Deployment
 
-Two workflows live in `.github/workflows/`:
+Everything is driven by `.github/workflows/ci.yml`:
 
-- **CI and Pages** (`ci.yml`): on every push to `main` it typechecks, runs the unit and end-to-end tests, renders a smoke-test frame, builds the site and deploys it to GitHub Pages. The player streams the film from the GitHub Release named by `RELEASE_TAG` (default `v0.1.0`; override with the `FILM_RELEASE_TAG` repository variable).
-- **Render and publish media** (`render.yml`, manual): renders `FullFilm` and `Trailer` in parallel on GitHub runners (2–3 hours), attaches both MP4s to the release, then redeploys the site. This is the one-click way to put the film online.
+- **Every push and pull request:** typecheck, unit tests, site build, Playwright tests, a smoke-test frame render.
+- **On `main` additionally:** switches GitHub Pages to the *GitHub Actions* source if it is still set to a branch, deploys the player, and, if release `v0.1.0` does not yet hold `MassEffectRefuse-Full.mp4` and `Trailer.mp4`, renders both on GitHub runners (2–3 hours, in parallel) and attaches them to the release. The deployed player streams from that release, so it starts working the moment the uploads finish.
 
-First-time setup, in order:
+So the only manual step is **merging the production branch into `main`**. Until the first media render completes, the player shows "COULD NOT LOAD VIDEO" with the release URL it is waiting for; the Actions tab shows the render progress.
 
-1. Merge this branch into `main` (the workflows must exist on the default branch to appear in the Actions tab).
-2. Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. **Actions → Render and publish media → Run workflow** (defaults are fine). When it finishes the player at `https://rdrm95.github.io/masseffectrefuse/` plays the film.
-
-Alternatively, render locally (`npm run render:film && npm run render:trailer`) and upload with `gh release create v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`; the CI deploy will then pick the files up.
+`render.yml` remains available as a manual workflow to re-render a chosen set of compositions and redeploy. To use locally rendered files instead, upload them with `gh release create v0.1.0 renders/MassEffectRefuse-Full.mp4 renders/Trailer.mp4`.
 
 ## Licence
 
